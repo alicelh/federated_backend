@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.mirrors.ustc.edu.cn/simple/"
+verify_ssl = true
+
+[dev-packages]
+pylint = "*"
+black = "*"
+rope = "*"
+
+[packages]
+django = "*"
+numpy = "*"
+mongoengine = "*"
+django-cors-headers = "*"
+sklearn = "*"
+tensorflow = "==1.14"
+scipy = "*"
+tensorflow-federated = "*"
+
+[pipenv]
+allow_prereleases = true
