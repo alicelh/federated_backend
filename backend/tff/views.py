@@ -182,9 +182,9 @@ def findClientParaByIter(request, iter):
         client = np.array(client)
         server = server_np
 
-        # dist = np.linalg.norm(client-server)
+        dist = np.linalg.norm(client-server)
 
-        dist = np.dot(client, server) #/(np.linalg.norm(client)*np.linalg.norm(server))
+        # dist = np.dot(client, server) #/(np.linalg.norm(client)*np.linalg.norm(server))
 
         #X = np.vstack([client, server])
         #XT = X.T
@@ -212,14 +212,14 @@ def findClientParaByIter(request, iter):
         else:
             y_pred.append(1)
 
-    isNormal = []
-    for i in range(len(y_pred)):
-        if y_pred[i] == -1 or sklearn_y_pred[i] == -1:
-            isNormal.append(-1)
-        else:
-            isNormal.append(1)
+    # isNormal = []
+    # for i in range(len(y_pred)):
+    #     if y_pred[i] == -1 or sklearn_y_pred[i] == -1:
+    #         isNormal.append(-1)
+    #     else:
+    #         isNormal.append(1)
 
-    result['isNormal'] = isNormal
+    result['isNormal'] = y_pred
 
     # with open(cache_file, 'w', encoding = 'utf-8') as fw:
     #     json.dump(result, fw)

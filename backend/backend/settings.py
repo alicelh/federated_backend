@@ -14,7 +14,7 @@ import os
 
 from mongoengine import connect
 
-connect("flvis_cifar_data_and_model", host="10.76.0.159", port=27017, alias="default")
+connect("flvis_mnist_data_and_model", host="10.76.0.159", port=27017, alias="default")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
