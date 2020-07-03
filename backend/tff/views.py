@@ -14,8 +14,8 @@ from sklearn.cluster import k_means
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances
 import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
-import tensorflow_federated as tff
+# from tensorflow.examples.tutorials.mnist import input_data
+# import tensorflow_federated as tff
 from scipy.spatial.distance import pdist
 from scipy.special import softmax
 import json
@@ -25,10 +25,10 @@ from time import time
 import os
 
 cache_path = os.path.join(os.getcwd(), 'cache')
-dataset_path = os.path.join(os.getcwd(), 'MNIST_data/')
-emnist_train, emnist_test = tff.simulation.datasets.emnist.load_data()
-mnist = input_data.read_data_sets(dataset_path, one_hot=True)
-clientNum = len(emnist_train.client_ids)
+# dataset_path = os.path.join(os.getcwd(), 'MNIST_data/')
+# emnist_train, emnist_test = tff.simulation.datasets.emnist.load_data()
+# mnist = input_data.read_data_sets(dataset_path, one_hot=True)
+# clientNum = len(emnist_train.client_ids)
 batch_size = 500#mnist.validation.num_examples
 
 def index(request):
@@ -102,11 +102,11 @@ def findClientByIter(request, iter):
 def findClientParaByIter(request, iter):
     # for i in range(334):
     #     iter = i+1
-    cache_file = os.path.join(cache_path,'project_iter_'+str(iter)+'.json')
-    if os.path.exists(cache_file):
-        with open(cache_file, 'r', encoding = 'utf-8') as fr:
-            result = json.load(fr)
-            return JsonResponse(json.dumps(result), safe=False)
+    # cache_file = os.path.join(cache_path,'project_iter_'+str(iter)+'.json')
+    # if os.path.exists(cache_file):
+    #     with open(cache_file, 'r', encoding = 'utf-8') as fr:
+    #         result = json.load(fr)
+    #         return JsonResponse(json.dumps(result), safe=False)
     print("开始转换第" + str(iter) + "次投影数据。")
     start = time()
     result = {}
@@ -171,8 +171,10 @@ def findClientParaByIter(request, iter):
     # cov = EllipticEnvelope(random_state=0).fit(X)
     # y_pred = cov.predict(X)
 
-    # clf = IsolationForest(n_estimators=10, warm_start=True).fit(X)
-    # y_pred = clf.predict(X)
+    clf = IsolationForest(n_estimators=10, warm_start=True).fit(X)
+    sklearn_y_pred = clf.predict(X)
+
+    sklearn_y_pred = sklearn_y_pred.tolist()
 
     normList = [0.]
     server_np = np.array(X[0])
@@ -206,11 +208,18 @@ def findClientParaByIter(request, iter):
     y_pred = []
     for dist in normList:
         if (dist > M + 2.5 * MAD):# or (dist < M - 2.5 * MAD):
-            y_pred.append(0)
+            y_pred.append(-1)
         else:
             y_pred.append(1)
 
-    result['isNormal'] = y_pred
+    isNormal = []
+    for i in range(len(y_pred)):
+        if y_pred[i] == -1 or sklearn_y_pred[i] == -1:
+            isNormal.append(-1)
+        else:
+            isNormal.append(1)
+
+    result['isNormal'] = isNormal
 
     # with open(cache_file, 'w', encoding = 'utf-8') as fw:
     #     json.dump(result, fw)
@@ -235,28 +244,31 @@ def findClientParaByIterIndexarr(request, iter, indexarr):
     return JsonResponse(result, safe=False)
 
 def findConfusionMatrixByiIerClientIndex(request, iter, index):
-    clientList = random.sample(range(1,clientNum),10)
-    para = api.find_client_para_by_iter_index(iter, index)[0].to_mongo()
-    W = np.array(para['w1']).astype(np.float32)
-    b = np.array(para['b1']).astype(np.float32)
-    predictions = []
-    labels = []
-    with tf.Session() as sess:
-        for sampleClient in clientList:
-            client_dataset = emnist_test.create_tf_dataset_for_client(
-                emnist_test.client_ids[sampleClient])
-            iterator = client_dataset.make_one_shot_iterator()
-            next_item = iterator.get_next()
-            for i in range(batch_size):
-                try:
-                    item = sess.run(next_item)
-                    x = tf.reshape(item['pixels'], [-1])
-                    y = tf.matmul([x], W) + b
-                    labels.append(item['label'])
-                    predictions.append(sess.run(tf.argmax(y[0])))
-                except tf.errors.OutOfRangeError:
-                    break
-        confusion_matrix = tf.contrib.metrics.confusion_matrix(labels, predictions, num_classes=10)
-        result = sess.run(confusion_matrix)
-        result = result.tolist()
-    return JsonResponse(result, safe=False)
+    # clientList = random.sample(range(1,clientNum),10)
+    # para = api.find_client_para_by_iter_index(iter, index)[0].to_mongo()
+    # W = np.array(para['w1']).astype(np.float32)
+    # b = np.array(para['b1']).astype(np.float32)
+    # predictions = []
+    # labels = []
+    # with tf.Session() as sess:
+    #     for sampleClient in clientList:
+    #         client_dataset = emnist_test.create_tf_dataset_for_client(
+    #             emnist_test.client_ids[sampleClient])
+    #         iterator = client_dataset.make_one_shot_iterator()
+    #         next_item = iterator.get_next()
+    #         for i in range(batch_size):
+    #             try:
+    #                 item = sess.run(next_item)
+    #                 x = tf.reshape(item['pixels'], [-1])
+    #                 y = tf.matmul([x], W) + b
+    #                 labels.append(item['label'])
+    #                 predictions.append(sess.run(tf.argmax(y[0])))
+    #             except tf.errors.OutOfRangeError:
+    #                 break
+    #     confusion_matrix = tf.contrib.metrics.confusion_matrix(labels, predictions, num_classes=10)
+    #     result = sess.run(confusion_matrix)
+    #     result = result.tolist()
+
+    client = api.find_client_by_iter_index(iter, index)[0].to_mongo()
+    result = np.array(client['matrix']).astype(np.float32)
+    return JsonResponse(result.tolist(), safe=False)

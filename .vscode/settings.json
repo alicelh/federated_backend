@@ -1,6 +1,0 @@
-{
-    "python.pythonPath": "C:\\Users\\Echizen\\.virtualenvs\\FLVis-backend-eAqNee7X\\Scripts\\python.exe",
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
-    "python.formatting.provider": "black"
-}

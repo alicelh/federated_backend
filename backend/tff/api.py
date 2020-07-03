@@ -20,6 +20,8 @@ def find_client_by_index(index):
 def find_client_by_iter(iter):
     return Client.objects(iter=iter).fields(id=0)
 
+def find_client_by_iter_index(iter,index):
+    return Client.objects(iter=iter, index=index).fields(id=0)
 
 def find_client_para_by_iter(iter):
     return Clientpara.objects(iter=iter).fields(id=0, iter=0)
