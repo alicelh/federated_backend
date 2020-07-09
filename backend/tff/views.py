@@ -207,7 +207,7 @@ def findClientParaByIter(request, iter):
 
     y_pred = []
     for dist in normList:
-        if (dist > M + 2.5 * MAD):# or (dist < M - 2.5 * MAD):
+        if (dist > M + 3 * MAD):# or (dist < M - 2.5 * MAD):
             y_pred.append(-1)
         else:
             y_pred.append(1)
